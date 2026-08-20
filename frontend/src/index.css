@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+@theme {
+  --color-medical-50: #f5fbfb;
+  --color-medical-100: #e6f6f6;
+  --color-medical-200: #c2e9ea;
+  --color-medical-300: #9edcdc;
+  --color-medical-400: #56c2c3;
+  --color-medical-500: #0ea8a9;
+  --color-medical-600: #0d9798;
+  --color-medical-700: #0b7e7f;
+  --color-medical-800: #096566;
+  --color-medical-900: #075253;
+  
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-slate-50);
+  color: var(--color-slate-900);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom premium styling classes */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.dark .glass-panel {
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
