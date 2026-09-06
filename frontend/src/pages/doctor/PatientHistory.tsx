@@ -186,8 +186,14 @@ export const PatientHistory: React.FC = () => {
                 </div>
                 <div className="space-y-1">
                   <span className="text-[10px] font-bold text-slate-450 uppercase tracking-wider block">Emergency Contact</span>
-                  <p>Name: <span className="font-bold text-slate-800">{selectedPatient.emergency_contact.name}</span></p>
-                  <p>Rel: <span className="font-semibold">{selectedPatient.emergency_contact.relationship}</span> | Phone: {selectedPatient.emergency_contact.phone}</p>
+                  {selectedPatient.emergency_contact ? (
+                    <>
+                      <p>Name: <span className="font-bold text-slate-800">{selectedPatient.emergency_contact.name || 'N/A'}</span></p>
+                      <p>Rel: <span className="font-semibold">{selectedPatient.emergency_contact.relationship || 'N/A'}</span> | Phone: {selectedPatient.emergency_contact.phone || 'N/A'}</p>
+                    </>
+                  ) : (
+                    <p className="text-xs text-slate-400 italic">No emergency contact recorded.</p>
+                  )}
                 </div>
               </div>
 

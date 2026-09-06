@@ -15,6 +15,7 @@ import { DoctorDashboard } from '../pages/doctor/DoctorDashboard';
 import { PatientHistory } from '../pages/doctor/PatientHistory';
 import { EmergencyQueue } from '../pages/doctor/EmergencyQueue';
 import { Prescriptions as DoctorPrescriptions } from '../pages/doctor/Prescriptions';
+import { DoctorAppointments } from '../pages/doctor/DoctorAppointments';
 
 import { ReceptionistDashboard } from '../pages/receptionist/ReceptionistDashboard';
 import { Registrations as ReceptionistRegistrations } from '../pages/receptionist/Registrations';
@@ -84,7 +85,7 @@ export const AppRoutes = () => {
                 <Route path="/doctor/patients" element={<PatientHistory />} />
                 <Route path="/doctor/emergency" element={<EmergencyQueue />} />
                 <Route path="/doctor/prescriptions" element={<DoctorPrescriptions />} />
-                <Route path="/doctor/appointments" element={<ReceptionistAppointments />} /> {/* Reuse schedule list */}
+                <Route path="/doctor/appointments" element={<DoctorAppointments />} />
               </Route>
 
               {/* Receptionist Specific Routes */}
