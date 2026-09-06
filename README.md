@@ -1,232 +1,277 @@
-# 🏥 MediAI — Intelligent Hospital Management & Clinical Decision Support System
-
-> **A modern, AI-powered healthcare ecosystem built to save clinical hours, eliminate fatal medication errors, and make hospital visits seamless for both patients and healthcare providers.**
+# MediAI — Hospital Management & Clinical Decision Support System
 
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688.svg?style=flat-square&logo=fastapi)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/Frontend-React%20%2B%20Vite%20%2B%20TypeScript-61DAFB.svg?style=flat-square&logo=react)](https://react.dev/)
 [![TailwindCSS](https://img.shields.io/badge/Styling-Tailwind%20CSS-38B2AC.svg?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
-[![Supabase](https://img.shields.io/badge/Cloud%20Database-Supabase%20PostgreSQL-3ECF8E.svg?style=flat-square&logo=supabase)](https://supabase.com/)
-[![Google Gemini](https://img.shields.io/badge/AI%20Engine-Google%20Gemini-4285F4.svg?style=flat-square&logo=google)](https://ai.google.dev/)
+[![Supabase](https://img.shields.io/badge/Database-Supabase%20PostgreSQL-3ECF8E.svg?style=flat-square&logo=supabase)](https://supabase.com/)
+[![Google Gemini](https://img.shields.io/badge/AI-Google%20Gemini-4285F4.svg?style=flat-square&logo=google)](https://ai.google.dev/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 
 ---
 
-## 📖 The Story Behind MediAI
+## What is MediAI?
 
-Modern hospitals are fast-paced, high-pressure environments. Doctors juggle dozens of patients a day while reviewing complex lab sheets and typing out prescriptions. Receptionists struggle to prioritize crowded waiting rooms based on actual medical urgency. Patients often leave clinics holding cryptic laboratory reports they cannot interpret, feeling anxious and confused.
+MediAI is a full-stack hospital management platform with an integrated Clinical Decision Support System (CDSS). It was built to address a few real, recurring problems in hospital workflows — manual triage that ignores clinical urgency, prescription errors from unchecked drug interactions, and patients walking out of clinics with lab reports they can't understand.
 
-**MediAI was built to bridge this gap.**
+The system is split into four role-based experiences: **Doctor**, **Receptionist**, **Patient**, and **Admin** — each with their own dashboard and permissions. Under the hood, a Python/FastAPI backend handles the clinical logic, with Google Gemini powering the AI features and Supabase managing the database and file storage.
 
-MediAI is not just another hospital management database. It is a comprehensive **Clinical Decision Support System (CDSS)** designed to act as a second set of eyes for clinicians, a dynamic triage assistant for front-desk staff, and an empathetic medical companion for patients.
-
----
-
-## ✨ Core Pillars & Superpowers
-
-### 🚨 1. Real-Time Emergency Triage Scoring (CDSS Protocol)
-When an emergency patient walks in, seconds count. Instead of a manual first-come, first-served queue:
-* Front-desk or nursing staff log vital signs (Heart Rate, Blood Pressure, SpO2 Oxygen Saturation, Respiratory Rate, Core Temperature, and Pain Level).
-* The **MediAI Triage Engine** dynamically calculates a composite clinical risk score ($0–100$) and categorizes patients into **Critical**, **High**, **Medium**, or **Low** priority classes.
-* Patients suffering from severe hypoxia, hypertensive crises, or trauma are automatically highlighted and promoted to the top of the doctor's live emergency queue.
-
-### 💊 2. Deterministic Drug Interaction Safety Lock
-Adverse Drug Reactions (ADRs) are among the leading causes of preventable clinical complications. 
-* As doctors prescribe medications, MediAI cross-references each drug pair against a built-in deterministic clinical interaction registry in real-time.
-* If a hazardous or lethal combination is detected (such as *Aspirin + Warfarin* or *Ibuprofen + Methotrexate*):
-  * A clear visual warning highlights the exact clinical hazard (e.g., severe bleeding risks or acute methotrexate toxicity).
-  * The digital prescription sign-off button is locked until the doctor adjusts the medication or acknowledges the conflict.
-
-### 📄 3. Intelligent Lab Report OCR & Plain-Language AI Summaries
-Complex medical reports often take valuable time to manually transcribe and can cause panic for patients:
-* Staff or patients can upload photos or scans of lab reports (Blood tests, Lipid panels, Liver function, Urinalysis, etc.).
-* MediAI extracts text using optical character recognition (OCR) and feeds it into **Google Gemini AI**.
-* **For Clinicians**: It indexes key medical parameters, highlights abnormal values, and formats them for immediate review.
-* **For Patients**: It translates medical jargon into empathetic, plain-language summaries explaining what the numbers mean and suggesting smart questions to ask their doctor.
-
-### 🤖 4. Patient AI Symptom Checker & Health Guide
-* Patients can describe their symptoms in natural language.
-* The AI analyzes the reported symptoms, recommends appropriate hospital departments (Cardiology, Orthopedics, Neurology, General Medicine, etc.), and advises whether the condition requires routine outpatient consultation or immediate emergency care.
+This isn't a demo project. It's a working system — deployed on Vercel (frontend) and Render (backend) — with real auth, real data relationships, and real clinical rules.
 
 ---
 
-## 👥 Role-Based Experience
+## Core Features
 
-MediAI features 4 tailored dashboards with strictly enforced role-based access control (RBAC):
+### Emergency Triage Engine
 
-```
-                                  ┌────────────────────────┐
-                                  │      MediAI Core       │
-                                  └───────────┬────────────┘
-                                              │
-         ┌──────────────────┬─────────────────┼─────────────────┬──────────────────┐
-         ▼                  ▼                 ▼                 ▼                  ▼
-  ┌──────────────┐   ┌──────────────┐  ┌──────────────┐  ┌──────────────┐   ┌──────────────┐
-  │   Patients   │   │   Doctors    │  │ Receptionist │  │    Admin     │   │     CDSS     │
-  ├──────────────┤   ├──────────────┤  ├──────────────┤  ├──────────────┤   ├──────────────┤
-  │• Symptoms AI │   │• Smart Queue │  │• Vital Intake│  │• Analytics   │   │• Triage Risk │
-  │• Book Visits │   │• CDSS Rx     │  │• Appointments│  │• Departments│   │• Drug Alerts │
-  │• OCR Reports │   │• Interactions│  │• Queue Admin │  │• Doctor Stats│   │• Gemini AI   │
-  │• Prescriptions│  │• Patient Bio │  │• Patient Reg │  │• Hospital KPI│   │• OCR Engine  │
-  └──────────────┘   └──────────────┘  └──────────────┘  └──────────────┘   └──────────────┘
-```
+When a patient arrives, the receptionist logs their vitals — heart rate, blood pressure, SpO2, respiratory rate, temperature, and pain score. MediAI runs these through a deterministic scoring algorithm that produces a risk score from 0 to 100 and assigns a priority class: **Critical**, **High**, **Medium**, or **Low**.
 
-| User Role | What they can do in MediAI |
-| :--- | :--- |
-| **👩‍⚕️ Doctor** | Review real-time prioritized triage queues, access full patient medical histories, write prescriptions with live drug interaction safety guards, and analyze lab diagnostics. |
-| **🧑‍💼 Receptionist** | Fast patient registration, rapid vital signs recording with immediate auto-triage calculation, appointment scheduling, and outpatient flow management. |
-| **🧑‍🦱 Patient** | Interactive AI symptom checker, book appointments with specialized doctors, view & download official digital prescriptions, and upload lab reports for AI translation. |
-| **🛡️ Administrator** | Hospital-wide operational metrics, department load monitoring, doctor scheduling overview, and system analytics. |
+The doctor's queue updates in real time based on this score. A patient with an SpO2 of 88% and a heart rate of 140 will appear at the top of the queue — not buried behind someone who arrived earlier with a mild headache. That's the whole point.
+
+### Drug Interaction Safety Guard
+
+As a doctor types out a prescription, every drug combination is checked against a built-in clinical interaction database. If a dangerous pair is detected — say, Warfarin with Aspirin — a warning appears immediately with a clear explanation of the risk (severe bleeding). The prescription cannot be submitted until the doctor either removes the conflicting drug or explicitly acknowledges the warning.
+
+This logic is fully deterministic. We intentionally did not use an LLM for this part because you cannot have a generative model hallucinating drug safety rules.
+
+### Lab Report OCR + AI Summaries
+
+Staff or patients can upload a photo or PDF scan of a lab report. Tesseract OCR extracts the text, and Google Gemini then processes it in two ways depending on who's viewing:
+
+- **For clinicians** — abnormal values are flagged, parameters are indexed, and the report is formatted for quick review.
+- **For patients** — the same data is rewritten in plain language. Instead of seeing `ALT: 89 U/L`, they see an explanation of what that means and whether they should discuss it with their doctor.
+
+### Patient Symptom Checker
+
+Patients can describe what they're experiencing in their own words. The AI reads the input, suggests which department they should visit (Cardiology, Orthopedics, General Medicine, etc.), and tells them whether it sounds like something that needs immediate attention or can wait for a scheduled appointment.
 
 ---
 
-## 🛠️ Architecture & Tech Stack
+## Who Uses What
 
-```
-[ Frontend: React 18 + Vite + TypeScript + Tailwind CSS ]
-                       │  ▲
-              REST API │  │ JSON (JWT Auth)
-                       ▼  │
-      [ Backend: FastAPI (Python 3.12) + Uvicorn ]
-          │                   │                 │
-     (PostgreSQL)        (OCR & CDSS)      (Gemini AI)
-          ▼                   ▼                 ▼
-   [ Supabase Cloud ]   [ Tesseract ]   [ Google Gemini 1.5 ]
-   - PostgreSQL RLS     - Image OCR     - Report Insights
-   - Storage Buckets    - Data Parser   - Symptom Triage
-```
+| Role | Access |
+|:--|:--|
+| **Doctor** | Triage queue, patient histories, prescription writer with drug interaction checks, lab report viewer |
+| **Receptionist** | Patient registration, vitals entry and auto-triage, appointment management |
+| **Patient** | Symptom checker, appointment booking, prescription downloads, lab report uploads |
+| **Admin** | Analytics dashboard, department stats, doctor schedule overview, hospital-wide KPIs |
 
-* **Frontend**: React 18, Vite, TypeScript, Tailwind CSS v4, Lucide Icons, React Router v6, TanStack Query, Recharts.
-* **Backend**: FastAPI, Python 3.12, Pydantic v2, SQLAlchemy v2, Uvicorn.
-* **Database & Cloud**: Supabase (PostgreSQL with Row Level Security, Auth Services, Secure Storage Buckets).
-* **Intelligence Layer**: Google Gemini API, Tesseract OCR / Pillow Image Processing, Deterministic Clinical Decision Algorithms.
-* **Zero-Config Offline Support**: Built-in SQLite database fallback (`mediai.db`) for instant local demos without needing cloud keys.
+Access control is enforced at both the API level (JWT + role checks) and the database level (Supabase Row Level Security policies).
 
 ---
 
-## 📁 Repository Structure
+## Tech Stack
 
-```text
+```
+[ React 18 + Vite + TypeScript + Tailwind CSS v4 ]
+                      |
+              REST API + JWT Auth
+                      |
+       [ FastAPI (Python 3.12) + Uvicorn ]
+          |               |              |
+   [ Supabase ]    [ OCR + CDSS ]   [ Gemini AI ]
+   PostgreSQL +    Tesseract OCR    Google Gemini
+   RLS Policies    Pillow / PIL     1.5 Flash
+   File Storage    Clinical Algos   Report & Triage
+```
+
+**Frontend**
+- React 18, Vite, TypeScript
+- Tailwind CSS v4
+- React Router v6, TanStack Query
+- Recharts, Lucide Icons
+
+**Backend**
+- FastAPI, Python 3.12, Uvicorn
+- SQLAlchemy v2, Pydantic v2
+- Tesseract OCR, Pillow
+
+**Infrastructure**
+- Supabase — PostgreSQL with RLS, Auth, and Storage Buckets
+- Google Gemini API — AI summaries and symptom analysis
+- Vercel — Frontend hosting
+- Render — Backend hosting
+
+**Local fallback**: If no environment keys are set, the backend automatically falls back to a local SQLite database (`mediai.db`) with mock AI responses so you can run the whole thing offline with zero configuration.
+
+---
+
+## Project Structure
+
+```
 MediAI/
-├── frontend/                     # Modern React client application
+├── frontend/
 │   ├── src/
-│   │   ├── components/layout/    # Responsive sidebar, header, and unified shell
-│   │   ├── hooks/                # Authentication context & persistent session
+│   │   ├── components/layout/    # Sidebar, header, app shell
+│   │   ├── hooks/                # Auth context, session management
 │   │   ├── pages/
-│   │   │   ├── admin/            # Hospital operations & analytics
-│   │   │   ├── auth/             # Landing page, login & sign up workflows
-│   │   │   ├── doctor/           # Clinical charts, triage queues & prescription writer
-│   │   │   ├── patient/          # Appointments, reports OCR, & symptom checker
-│   │   │   └── receptionist/     # Patient intake, vitals entry & appointment booking
-│   │   ├── services/             # Axios API client & Supabase integrations
-│   │   └── routes/               # Role-protected routing engine
-├── backend/                      # High-performance FastAPI server
+│   │   │   ├── admin/            # Analytics and hospital operations
+│   │   │   ├── auth/             # Login, signup, landing page
+│   │   │   ├── doctor/           # Triage queue, prescriptions, patient charts
+│   │   │   ├── patient/          # Appointments, reports, symptom checker
+│   │   │   └── receptionist/     # Patient intake, vitals, queue management
+│   │   ├── services/             # Axios API client, Supabase client
+│   │   └── routes/               # Role-based protected routing
+│
+├── backend/
 │   ├── app/
-│   │   ├── api/routes/           # Modular REST API endpoints (Auth, Triage, Rx, etc.)
-│   │   ├── core/                 # Config loader, database session, & JWT security
-│   │   ├── models/               # Relational database models (SQLAlchemy)
-│   │   ├── schemas/              # Pydantic validation schemas
-│   │   └── services/             # CDSS engines: AI, OCR, Drug Interaction, Triage
-│   ├── requirements.txt          # Python dependencies
-│   ├── schema.sql                # Production PostgreSQL schema with Supabase triggers
-│   └── seed_db.py                # Database population script with realistic demo data
-├── README.md                     # Project documentation
-└── .gitignore                    # Secrets and build artifact exclusions
+│   │   ├── api/routes/           # REST endpoints — auth, triage, prescriptions, reports, etc.
+│   │   ├── core/                 # Config, database session, JWT utilities
+│   │   ├── models/               # SQLAlchemy ORM models
+│   │   ├── schemas/              # Pydantic request/response schemas
+│   │   └── services/             # CDSS logic — triage scoring, drug checks, OCR, AI
+│   ├── requirements.txt
+│   ├── schema.sql                # Full PostgreSQL schema for Supabase
+│   └── seed_db.py                # Seeds the database with realistic demo data
+│
+├── render.yaml                   # Render deployment config (backend)
+├── vercel.json                   # Vercel deployment config (frontend)
+└── README.md
 ```
 
 ---
 
-## 🚀 Quick Start Guide
+## Running Locally
 
-### Option 1: Local Demo Mode (Fastest — 0 Setup)
-MediAI includes an automatic local fallback. If no cloud keys are configured, it runs on an embedded SQLite engine with mock AI/OCR fallbacks.
+### Option A — Zero Config (SQLite Fallback)
 
-#### 1. Start the Backend
+The easiest way to run MediAI. No Supabase account, no API keys required.
+
+**1. Start the backend**
+
 ```bash
-# Navigate to the backend
 cd backend
 
-# Create and activate a virtual environment
+# Create a virtual environment
 python -m venv venv
 
-# On Windows:
+# Activate it
+# Windows:
 .\venv\Scripts\activate
-# On macOS / Linux:
-# source venv/bin/activate
+# macOS / Linux:
+source venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Start the development server
+# Start the server
 python -m uvicorn app.main:app --reload --port 8000
 ```
-*Health Check: Open `http://localhost:8000/` in your browser.*
 
-#### 2. Start the Frontend
+Visit `http://localhost:8000/` to confirm it's running.
+
+**2. Start the frontend**
+
 ```bash
-# In a new terminal, navigate to the frontend
 cd frontend
-
-# Install Node dependencies
 npm install
-
-# Start the Vite development server
 npm run dev
 ```
-*Open `http://localhost:5173/` in your browser.*
 
-#### 3. Instant Demo Accounts
-In local fallback mode, you can log in with any password using these email prefixes:
-* **Doctor**: `doctor@mediai.com`
-* **Receptionist**: `receptionist@mediai.com`
-* **Patient**: `patient@mediai.com`
-* **Admin**: `admin@mediai.com`
-*(Or click **Sign Up** to create a custom profile!)*
+Open `http://localhost:5173/` in your browser.
 
----
+**3. Demo accounts**
 
-### Option 2: Full Cloud Setup (Supabase & Gemini AI)
+Use any of these emails with any password in local mode:
 
-1. **Supabase Setup**:
-   * Create a free project at [Supabase](https://supabase.com/).
-   * Open the **SQL Editor** in your Supabase dashboard, paste the contents of [`backend/schema.sql`](file:///c:/Users/VERMA'S/Desktop/Medical%20Project/backend/schema.sql), and click **Run**.
-   * Under **Storage**, create a private bucket named `medical-reports`.
+| Role | Email |
+|:--|:--|
+| Doctor | `doctor@mediai.com` |
+| Receptionist | `receptionist@mediai.com` |
+| Patient | `patient@mediai.com` |
+| Admin | `admin@mediai.com` |
 
-2. **Configure Environment Files**:
-   * In `backend/`: Copy `.env.example` to `.env` and fill in your Supabase URL, Service Key, Postgres connection string, and Google Gemini API Key.
-   * In `frontend/`: Copy `.env.example` to `.env` and fill in your `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
-
-3. **Seed Database** *(Optional)*:
-   ```bash
-   cd backend
-   python seed_db.py
-   ```
+Or sign up with a new account — it'll assign the Patient role by default.
 
 ---
 
-## 🔒 Security & Privacy Practices
+### Option B — Full Cloud Setup (Supabase + Gemini)
 
-* **Row Level Security (RLS)**: Enforced database-level authorization policies ensure doctors only access assigned patient records and patients cannot view other patients' data.
-* **Deterministic Clinical Logic**: Critical medical rules (such as lethal drug interactions and triage thresholds) are hardcoded with deterministic safety algorithms rather than purely generative models to prevent AI hallucinations in high-stakes scenarios.
-* **Zero Credential Leaks**: All keys, database passwords, and environment credentials are separated into `.env` files and excluded from version control.
+**1. Set up Supabase**
+
+- Create a free project at [supabase.com](https://supabase.com/)
+- Go to the SQL Editor and run the entire contents of `backend/schema.sql`
+- Under Storage, create a private bucket called `medical-reports`
+
+**2. Configure environment variables**
+
+In `backend/`, copy `.env.example` to `.env` and fill in:
+```
+SUPABASE_URL=...
+SUPABASE_SERVICE_KEY=...
+DATABASE_URL=...
+GEMINI_API_KEY=...
+SECRET_KEY=...
+```
+
+In `frontend/`, copy `.env.example` to `.env` and fill in:
+```
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_ANON_KEY=...
+VITE_API_URL=...
+```
+
+**3. Seed the database (optional)**
+
+```bash
+cd backend
+python seed_db.py
+```
+
+This populates the database with sample doctors, patients, appointments, and prescriptions for testing.
 
 ---
 
-## 🤝 Contributing & Feedback
+## Security Notes
 
-Contributions, feature suggestions, and clinical feedback are always welcome!
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+**Row Level Security** — All database access goes through Supabase RLS policies. Doctors can only query records for patients assigned to them. Patients cannot see other patients' data. These policies are enforced at the database level, not just in application code.
 
----
+**Deterministic clinical logic** — Drug interaction checks and triage scoring are written as hard-coded algorithms. We made a deliberate choice not to let an LLM decide whether a drug combination is dangerous. The rules are fixed, auditable, and cannot hallucinate.
 
-## 📄 License
-Distributed under the MIT License. See `LICENSE` for more information.
+**Secrets management** — No credentials are committed to the repository. All sensitive values live in `.env` files that are listed in `.gitignore`.
 
 ---
 
-<p align="center">
-  Developed with ❤️ to make healthcare safer, smarter, and more accessible.
-</p>
+## API Overview
+
+The backend exposes a RESTful API under `/api`. Key route groups:
+
+| Prefix | Description |
+|:--|:--|
+| `/api/auth` | Login, signup, token refresh |
+| `/api/patients` | Patient CRUD, medical history |
+| `/api/appointments` | Booking, status updates |
+| `/api/triage` | Vital signs intake, scoring, queue |
+| `/api/prescriptions` | Create, view, download prescriptions |
+| `/api/reports` | OCR upload, AI summary generation |
+| `/api/ai` | Symptom checker, Gemini integration |
+| `/api/analytics` | Admin stats, department metrics |
+| `/api/departments` | Department listing and management |
+
+Interactive API docs are available at `http://localhost:8000/docs` when running locally.
+
+---
+
+## Contributing
+
+If you want to contribute, fix a bug, or suggest a feature — pull requests are open.
+
+```bash
+# Fork and clone the repo
+git checkout -b feature/your-feature-name
+
+# Make your changes, then
+git commit -m "describe what you changed"
+git push origin feature/your-feature-name
+```
+
+Open a pull request with a short description of what the change does and why.
+
+---
+
+## License
+
+MIT — use it, build on it, ship it. See `LICENSE` for the full text.
+
+---
+
+<p align="center">Built to make hospitals a little less chaotic and patients a little less confused.</p>
