@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api';
 import { Calendar, Clock, User, CheckCircle2, XCircle, ChevronRight } from 'lucide-react';
 
@@ -41,7 +41,7 @@ export const DoctorAppointments: React.FC = () => {
 
   const handleUpdateStatus = async (apptId: string, newStatus: string) => {
     try {
-      await api.put(/appointments/?appt_status=);
+      await api.put(`/appointments/${apptId}?appt_status=${newStatus}`);
       fetchAppointments();
     } catch (e) {
       console.error('Failed to update status:', e);
@@ -73,7 +73,7 @@ export const DoctorAppointments: React.FC = () => {
   const formatTime = (timeStr: string) => {
     const [h, m] = timeStr.split(':');
     const hour = parseInt(h);
-    return ${hour > 12 ? hour - 12 : hour}: ;
+    return `${hour > 12 ? hour - 12 : hour}:${m} ${hour >= 12 ? 'PM' : 'AM'}`;
   };
 
   const today = new Date().toISOString().split('T')[0];
@@ -107,7 +107,7 @@ export const DoctorAppointments: React.FC = () => {
           <button
             key={tab}
             onClick={() => setFilter(tab)}
-            className={px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider border transition-all }
+            className={`px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider border transition-all ${filter === tab ? 'bg-medical-600 text-white border-medical-600' : 'bg-white text-slate-500 border-slate-200 hover:border-medical-300'}`}
           >
             {tab} <span className="ml-1 opacity-70">({counts[tab]})</span>
           </button>
@@ -152,7 +152,7 @@ export const DoctorAppointments: React.FC = () => {
                             {appt.patient?.profile?.full_name || 'Patient Record'}
                           </p>
                           <p className="text-[10px] text-slate-400">
-                            {appt.patient?.gender || ''}{appt.patient?.blood_type ?  ·  : ''}
+                            {appt.patient?.gender || ''}{appt.patient?.blood_type ? ` · ${appt.patient.blood_type}` : ''}
                           </p>
                         </div>
                       </div>
@@ -170,7 +170,7 @@ export const DoctorAppointments: React.FC = () => {
                       )}
                     </td>
                     <td className="px-5 py-4">
-                      <span className={inline-flex items-center gap-1 px-2 py-0.5 border rounded text-[10px] uppercase font-bold tracking-wider }>
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 border rounded text-[10px] uppercase font-bold tracking-wider ${getStatusStyle(appt.status)}`}>
                         {appt.status}
                       </span>
                     </td>
