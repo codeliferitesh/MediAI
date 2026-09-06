@@ -32,10 +32,18 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS Policy - allows frontend to connect to the backend
+# CORS Policy — allow frontend origins (local dev + production deployments)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:5173",
+        # Add your frontend Render/Vercel/Netlify URL here if you deploy the frontend too:
+        # "https://your-frontend.onrender.com",
+        # "https://your-app.vercel.app",
+    ],
+    allow_origin_regex=r"https://.*\.(onrender|vercel|netlify)\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
