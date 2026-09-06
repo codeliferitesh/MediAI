@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.security import get_current_user
@@ -104,7 +104,7 @@ def get_emergency_queue(
 @router.put("/{case_id}/status", response_model=EmergencyCaseResponse)
 def update_emergency_status(
     case_id: UUID,
-    status_select: str,  # 'queued', 'treating', 'discharged'
+    status_select: str = Query(..., description="New status: queued, treating, or discharged"),  # 'queued', 'treating', 'discharged'
     current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):

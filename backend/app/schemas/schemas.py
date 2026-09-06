@@ -119,10 +119,10 @@ class MedicalReportResponse(BaseModel):
 class AIAnalysisResponse(BaseModel):
     id: Union[UUID, str]
     report_id: Union[UUID, str]
-    key_findings: Optional[dict] = None
-    abnormal_values: Optional[dict] = None
-    observations: Optional[dict] = None
-    suggested_questions: Optional[dict] = None
+    key_findings: Optional[List[Any]] = None
+    abnormal_values: Optional[Any] = None
+    observations: Optional[List[Any]] = None
+    suggested_questions: Optional[List[Any]] = None
     summary_text: Optional[str] = None
     created_at: Optional[datetime] = None
 

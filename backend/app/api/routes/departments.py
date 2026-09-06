@@ -5,12 +5,12 @@ from app.core.security import get_current_user
 from app.models.models import Department, Doctor, Profile
 from pydantic import BaseModel
 from uuid import UUID
-from typing import List
+from typing import List, Union
 
 router = APIRouter(prefix="/departments", tags=["Departments & Doctors"])
 
 class DoctorDirectoryResponse(BaseModel):
-    id: UUID
+    id: Union[UUID, str]
     full_name: str
     specialization: str
     is_available: bool

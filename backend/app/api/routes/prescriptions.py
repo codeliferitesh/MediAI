@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.security import get_current_user, RoleChecker
 from app.schemas.schemas import PrescriptionResponse, PrescriptionCreate, MedicationResponse
-from app.models.models import Prescription, PrescriptionItem, Medication, AuditLog, Patient, Doctor
+from app.models.models import Prescription, PrescriptionItem, Medication, AuditLog, Patient, Doctor, Profile
 from app.services.interaction import check_medication_interactions
 from uuid import UUID
 from typing import List
@@ -92,7 +92,7 @@ def get_patient_prescriptions(
     """
     Retrieve clinical prescriptions written for a specific patient.
     """
-    if current_user["role"] == "patient" and current_user["id"] != patient_id:
+    if current_user["role"] == "patient" and str(current_user["id"]) != str(patient_id):
         raise HTTPException(status_code=403, detail="Unauthorized access")
         
     return db.query(Prescription).filter(Prescription.patient_id == patient_id).all()

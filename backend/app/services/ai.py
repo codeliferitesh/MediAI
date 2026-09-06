@@ -11,6 +11,23 @@ if settings.GEMINI_API_KEY:
     except Exception as e:
         print(f"Gemini configuration error: {e}")
 
+CANDIDATE_MODELS = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.5-pro', 'gemini-1.5-pro']
+
+def _generate_with_fallback(prompt_or_contents):
+    """
+    Attempts generation across candidate models for maximum resilience.
+    """
+    last_err = None
+    for model_name in CANDIDATE_MODELS:
+        try:
+            model = genai.GenerativeModel(model_name)
+            response = model.generate_content(prompt_or_contents)
+            return response
+        except Exception as e:
+            last_err = e
+            continue
+    raise last_err or RuntimeError("No compatible Gemini model found.")
+
 def summarize_medical_report(extracted_text: str) -> dict:
     """
     Summarizes lab report findings into structured observations using Gemini.
@@ -20,7 +37,6 @@ def summarize_medical_report(extracted_text: str) -> dict:
         raise RuntimeError("Gemini API is not configured on the server.")
         
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash')
         prompt = f"""
         You are a Clinical Decision Support System assistant. Summarize the following medical text.
         Do not provide a final diagnosis. Formulate the response in valid JSON matching this schema:
@@ -34,11 +50,14 @@ def summarize_medical_report(extracted_text: str) -> dict:
         Medical report text:
         {extracted_text}
         """
-        response = model.generate_content(prompt)
+        response = _generate_with_fallback(prompt)
         res_text = response.text.strip()
+        # Strip markdown code fences if model returned ```json ... ```
+        if res_text.startswith("```"):
+            res_text = res_text.split("\n", 1)[-1].rsplit("```", 1)[0].strip()
         start = res_text.find('{')
         end = res_text.rfind('}') + 1
-        if start != -1 and end != -1:
+        if start != -1 and end > start:
             return json.loads(res_text[start:end])
         raise ValueError(f"Failed to parse clinical summary. Response did not contain valid JSON: {res_text}")
     except Exception as e:
@@ -52,7 +71,6 @@ def analyze_symptoms_chat(symptoms_text: str) -> dict:
         raise RuntimeError("Gemini API is not configured on the server.")
         
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash')
         prompt = f"""
         You are a Clinical Decision Support System assistant. Analyze these symptoms: "{symptoms_text}".
         Provide triage feedback (Urgency level, Reasoning, Follow-up questions).
@@ -65,11 +83,14 @@ def analyze_symptoms_chat(symptoms_text: str) -> dict:
             "clinical_guidance": "Recommended next steps..."
         }}
         """
-        response = model.generate_content(prompt)
+        response = _generate_with_fallback(prompt)
         res_text = response.text.strip()
+        # Strip markdown code fences if model returned ```json ... ```
+        if res_text.startswith("```"):
+            res_text = res_text.split("\n", 1)[-1].rsplit("```", 1)[0].strip()
         start = res_text.find('{')
         end = res_text.rfind('}') + 1
-        if start != -1 and end != -1:
+        if start != -1 and end > start:
             return json.loads(res_text[start:end])
         raise ValueError(f"Failed to parse symptom analysis. Response did not contain valid JSON: {res_text}")
     except Exception as e:
@@ -83,7 +104,6 @@ def analyze_medical_image(image_bytes: bytes, mime_type: str) -> dict:
         raise RuntimeError("Gemini API is not configured on the server.")
         
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash')
         prompt = """
         You are a Clinical Decision Support System assistant. Analyze this medical scan image (e.g. Chest X-Ray, MRI, CT scan).
         Do not provide a final diagnosis. Formulate the response in valid JSON matching this schema:
@@ -95,14 +115,18 @@ def analyze_medical_image(image_bytes: bytes, mime_type: str) -> dict:
             "summary_text": "general scan summary and visual observations"
         }
         """
-        response = model.generate_content([
+        contents = [
             {"mime_type": mime_type, "data": image_bytes},
             prompt
-        ])
+        ]
+        response = _generate_with_fallback(contents)
         res_text = response.text.strip()
+        # Strip markdown code fences if model returned ```json ... ```
+        if res_text.startswith("```"):
+            res_text = res_text.split("\n", 1)[-1].rsplit("```", 1)[0].strip()
         start = res_text.find('{')
         end = res_text.rfind('}') + 1
-        if start != -1 and end != -1:
+        if start != -1 and end > start:
             return json.loads(res_text[start:end])
         raise ValueError(f"Failed to parse medical image analysis. Response did not contain valid JSON: {res_text}")
     except Exception as e:

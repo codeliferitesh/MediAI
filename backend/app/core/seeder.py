@@ -189,118 +189,133 @@ def seed_database(db: Session):
             db.flush()
         med_map[name] = med.id
 
+    # Commit all core data before adding relations (fixes PostgreSQL UUID sentinel mismatch
+    # where db.flush() alone is insufficient for psycopg2 to resolve returning-clause UUIDs)
+    db.commit()
+
     # 6. Sample Emergency Cases (if table is empty)
-    if db.query(EmergencyCase).count() == 0:
-        sample_cases = [
-            EmergencyCase(
-                id=str(uuid.uuid4()),
-                patient_id=pat_map.get("patient.aditya@mediai.com"),
-                name="Aditya Verma",
-                age=48,
-                heart_rate=132,
-                blood_pressure="175/110",
-                spo2=91,
-                temperature=38.7,
-                pain_level=8,
-                symptoms="Acute substernal chest pressure, diaphoresis, radiating left arm pain",
-                consciousness_status="Alert",
-                respiratory_difficulty=True,
-                priority="Critical",
-                risk_score=92.5,
-                reasoning="High probability of acute coronary syndrome with hypertensive crisis.",
-                status="queued"
-            ),
-            EmergencyCase(
-                id=str(uuid.uuid4()),
-                patient_id=pat_map.get("patient.priyan@mediai.com"),
-                name="Priyan Patel",
-                age=38,
-                heart_rate=105,
-                blood_pressure="128/82",
-                spo2=93,
-                temperature=37.1,
-                pain_level=5,
-                symptoms="Severe wheezing, shortness of breath unresponsive to rescue inhaler",
-                consciousness_status="Alert",
-                respiratory_difficulty=True,
-                priority="High",
-                risk_score=74.0,
-                reasoning="Acute asthma exacerbation with moderate hypoxemia.",
-                status="queued"
-            ),
-            EmergencyCase(
-                id=str(uuid.uuid4()),
-                patient_id=pat_map.get("patient.kabir@mediai.com"),
-                name="Kabir Kapoor",
-                age=21,
-                heart_rate=78,
-                blood_pressure="120/75",
-                spo2=99,
-                temperature=36.8,
-                pain_level=6,
-                symptoms="Right ankle inversion sprain during sports, localized edema",
-                consciousness_status="Alert",
-                respiratory_difficulty=False,
-                priority="Medium",
-                risk_score=38.0,
-                reasoning="Soft tissue musculoskeletal trauma; stable vitals.",
-                status="queued"
-            ),
-        ]
-        db.add_all(sample_cases)
-        db.flush()
+    try:
+        if db.query(EmergencyCase).count() == 0:
+            sample_cases = [
+                EmergencyCase(
+                    id=str(uuid.uuid4()),
+                    patient_id=pat_map.get("patient.aditya@mediai.com"),
+                    name="Aditya Verma",
+                    age=48,
+                    heart_rate=132,
+                    blood_pressure="175/110",
+                    spo2=91,
+                    temperature=38.7,
+                    pain_level=8,
+                    symptoms="Acute substernal chest pressure, diaphoresis, radiating left arm pain",
+                    consciousness_status="Alert",
+                    respiratory_difficulty=True,
+                    priority="Critical",
+                    risk_score=92.5,
+                    reasoning="High probability of acute coronary syndrome with hypertensive crisis.",
+                    status="queued"
+                ),
+                EmergencyCase(
+                    id=str(uuid.uuid4()),
+                    patient_id=pat_map.get("patient.priyan@mediai.com"),
+                    name="Priyan Patel",
+                    age=38,
+                    heart_rate=105,
+                    blood_pressure="128/82",
+                    spo2=93,
+                    temperature=37.1,
+                    pain_level=5,
+                    symptoms="Severe wheezing, shortness of breath unresponsive to rescue inhaler",
+                    consciousness_status="Alert",
+                    respiratory_difficulty=True,
+                    priority="High",
+                    risk_score=74.0,
+                    reasoning="Acute asthma exacerbation with moderate hypoxemia.",
+                    status="queued"
+                ),
+                EmergencyCase(
+                    id=str(uuid.uuid4()),
+                    patient_id=pat_map.get("patient.kabir@mediai.com"),
+                    name="Kabir Kapoor",
+                    age=21,
+                    heart_rate=78,
+                    blood_pressure="120/75",
+                    spo2=99,
+                    temperature=36.8,
+                    pain_level=6,
+                    symptoms="Right ankle inversion sprain during sports, localized edema",
+                    consciousness_status="Alert",
+                    respiratory_difficulty=False,
+                    priority="Medium",
+                    risk_score=38.0,
+                    reasoning="Soft tissue musculoskeletal trauma; stable vitals.",
+                    status="queued"
+                ),
+            ]
+            db.add_all(sample_cases)
+            db.commit()
+    except Exception as e:
+        db.rollback()
+        print(f"[Seeder] Warning: Could not seed emergency cases: {e}")
 
     # 7. Sample Appointments (if empty)
-    if db.query(Appointment).count() == 0:
-        today = datetime.date.today()
-        sample_appts = [
-            Appointment(
+    try:
+        if db.query(Appointment).count() == 0:
+            today = datetime.date.today()
+            sample_appts = [
+                Appointment(
+                    id=str(uuid.uuid4()),
+                    patient_id=pat_map.get("patient@mediai.com"),
+                    doctor_id=doc_map.get("doctor@mediai.com"),
+                    appointment_date=today + datetime.timedelta(days=1),
+                    time_slot="10:00:00",
+                    status="scheduled",
+                    reason="Routine cardiovascular health checkup and BP monitoring",
+                    notes="Patient requested morning slot"
+                ),
+                Appointment(
+                    id=str(uuid.uuid4()),
+                    patient_id=pat_map.get("patient.priyan@mediai.com"),
+                    doctor_id=doc_map.get("doctor.amit@mediai.com"),
+                    appointment_date=today + datetime.timedelta(days=2),
+                    time_slot="11:30:00",
+                    status="scheduled",
+                    reason="Follow-up on respiratory management",
+                    notes="Review inhaler frequency"
+                ),
+            ]
+            db.add_all(sample_appts)
+            db.commit()
+    except Exception as e:
+        db.rollback()
+        print(f"[Seeder] Warning: Could not seed appointments: {e}")
+
+    # 8. Sample Prescriptions (if empty)
+    try:
+        if db.query(Prescription).count() == 0 and pat_map.get("patient@mediai.com") and doc_map.get("doctor@mediai.com"):
+            presc = Prescription(
                 id=str(uuid.uuid4()),
                 patient_id=pat_map.get("patient@mediai.com"),
                 doctor_id=doc_map.get("doctor@mediai.com"),
-                appointment_date=today + datetime.timedelta(days=1),
-                time_slot="10:00:00",
-                status="scheduled",
-                reason="Routine cardiovascular health checkup and BP monitoring",
-                notes="Patient requested morning slot"
-            ),
-            Appointment(
-                id=str(uuid.uuid4()),
-                patient_id=pat_map.get("patient.priyan@mediai.com"),
-                doctor_id=doc_map.get("doctor.amit@mediai.com"),
-                appointment_date=today + datetime.timedelta(days=2),
-                time_slot="11:30:00",
-                status="scheduled",
-                reason="Follow-up on respiratory management",
-                notes="Review inhaler frequency"
-            ),
-        ]
-        db.add_all(sample_appts)
-        db.flush()
-
-    # 8. Sample Prescriptions (if empty)
-    if db.query(Prescription).count() == 0 and pat_map.get("patient@mediai.com") and doc_map.get("doctor@mediai.com"):
-        presc = Prescription(
-            id=str(uuid.uuid4()),
-            patient_id=pat_map.get("patient@mediai.com"),
-            doctor_id=doc_map.get("doctor@mediai.com"),
-            notes="Take with food. Monitor blood pressure weekly."
-        )
-        db.add(presc)
-        db.flush()
-
-        if med_map.get("Lisinopril"):
-            item = PrescriptionItem(
-                id=str(uuid.uuid4()),
-                prescription_id=presc.id,
-                medication_id=med_map.get("Lisinopril"),
-                dosage="10mg",
-                frequency="Once daily (Morning)",
-                duration="30 days",
-                instructions="Take with water before breakfast."
+                notes="Take with food. Monitor blood pressure weekly."
             )
-            db.add(item)
+            db.add(presc)
             db.flush()
 
-    db.commit()
+            if med_map.get("Lisinopril"):
+                item = PrescriptionItem(
+                    id=str(uuid.uuid4()),
+                    prescription_id=presc.id,
+                    medication_id=med_map.get("Lisinopril"),
+                    dosage="10mg",
+                    frequency="Once daily (Morning)",
+                    duration="30 days",
+                    instructions="Take with water before breakfast."
+                )
+                db.add(item)
+            db.commit()
+    except Exception as e:
+        db.rollback()
+        print(f"[Seeder] Warning: Could not seed prescriptions: {e}")
+
     print("[Seeder] Database seeding completed successfully! All ides.md credentials ready.")

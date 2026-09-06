@@ -19,12 +19,26 @@ except Exception as e:
 
 security = HTTPBearer(auto_error=False)
 
+def is_valid_uuid(val: str) -> bool:
+    if not val or not isinstance(val, str):
+        return False
+    try:
+        uuid.UUID(str(val))
+        return True
+    except (ValueError, AttributeError, TypeError):
+        return False
+
 def ensure_user_record(db: Session, email: str, full_name: str, role: str, target_id: str = None) -> Profile:
     """Helper to ensure a Profile and role-specific record exist in the database."""
-    profile = db.query(Profile).filter((Profile.email == email) | (Profile.id == target_id if target_id else False)).first()
+    valid_id = target_id if (target_id and is_valid_uuid(target_id)) else None
+    if valid_id:
+        profile = db.query(Profile).filter((Profile.email == email) | (Profile.id == valid_id)).first()
+    else:
+        profile = db.query(Profile).filter(Profile.email == email).first()
+
     if not profile:
         profile = Profile(
-            id=target_id or str(uuid.uuid4()),
+            id=valid_id or str(uuid.uuid4()),
             email=email,
             full_name=full_name,
             role=role
@@ -43,7 +57,7 @@ def ensure_user_record(db: Session, email: str, full_name: str, role: str, targe
         if not doc:
             db.add(Doctor(
                 id=profile.id,
-                license_number=f"LIC-{profile.id[:5].upper()}",
+                license_number=f"LIC-{str(profile.id)[:5].upper()}",
                 specialization="General Practitioner"
             ))
             db.flush()
@@ -72,8 +86,12 @@ def get_current_user(
             role = parts[1] if len(parts) > 1 else "patient"
             identifier = parts[2] if len(parts) > 2 else "demo-user"
             
-            # Lookup in database
-            profile = db.query(Profile).filter((Profile.email == identifier) | (Profile.id == identifier)).first()
+            # Lookup in database safely checking if identifier is UUID
+            if is_valid_uuid(identifier):
+                profile = db.query(Profile).filter((Profile.email == identifier) | (Profile.id == identifier)).first()
+            else:
+                profile = db.query(Profile).filter(Profile.email == identifier).first()
+
             if profile:
                 # Ensure patient/doctor sub-table entry exists
                 if profile.role == "patient":
@@ -82,11 +100,11 @@ def get_current_user(
                         db.commit()
                 elif profile.role == "doctor":
                     if not db.query(Doctor).filter(Doctor.id == profile.id).first():
-                        db.add(Doctor(id=profile.id, license_number=f"LIC-{profile.id[:5].upper()}", specialization="General Practitioner"))
+                        db.add(Doctor(id=profile.id, license_number=f"LIC-{str(profile.id)[:5].upper()}", specialization="General Practitioner"))
                         db.commit()
 
                 return {
-                    "id": profile.id,
+                    "id": str(profile.id),
                     "email": profile.email,
                     "full_name": profile.full_name,
                     "role": profile.role
@@ -100,12 +118,13 @@ def get_current_user(
             
             created_profile = ensure_user_record(db, email, full_name, role)
             return {
-                "id": created_profile.id,
+                "id": str(created_profile.id),
                 "email": created_profile.email,
                 "full_name": created_profile.full_name,
                 "role": created_profile.role
             }
         except Exception as e:
+            db.rollback()
             print(f"[Auth] Demo token error: {e}")
 
     # 2. Check if token is a JSON base64 encoded string
@@ -120,13 +139,13 @@ def get_current_user(
             
             profile = ensure_user_record(db, email, full_name, role, target_id)
             return {
-                "id": profile.id,
+                "id": str(profile.id),
                 "email": profile.email,
                 "full_name": profile.full_name,
                 "role": profile.role
             }
     except Exception:
-        pass
+        db.rollback()
 
     # 3. Validate JWT token with Supabase Auth if available
     if supabase:
@@ -141,23 +160,32 @@ def get_current_user(
                 
                 profile = ensure_user_record(db, email, full_name, role, user_auth.id)
                 return {
-                    "id": profile.id,
+                    "id": str(profile.id),
                     "email": profile.email,
                     "full_name": profile.full_name,
                     "role": profile.role
                 }
         except Exception as e:
+            db.rollback()
             print(f"[Auth] Supabase token verification failed: {e}")
 
     # 4. Fallback if user profile exists in local DB with token as id/email
-    profile = db.query(Profile).filter((Profile.id == token) | (Profile.email == token)).first()
-    if profile:
-        return {
-            "id": profile.id,
-            "email": profile.email,
-            "full_name": profile.full_name,
-            "role": profile.role
-        }
+    try:
+        if is_valid_uuid(token):
+            profile = db.query(Profile).filter((Profile.id == token) | (Profile.email == token)).first()
+        else:
+            profile = db.query(Profile).filter(Profile.email == token).first()
+
+        if profile:
+            return {
+                "id": str(profile.id),
+                "email": profile.email,
+                "full_name": profile.full_name,
+                "role": profile.role
+            }
+    except Exception as e:
+        db.rollback()
+        print(f"[Auth] DB lookup error: {e}")
 
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,

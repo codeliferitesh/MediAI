@@ -30,7 +30,7 @@ async def upload_report(
     Upload a patient report (PDF/Image), run OCR, and record details in database.
     """
     # 1. Validate role access
-    if current_user["role"] == "patient" and current_user["id"] != patient_id:
+    if current_user["role"] == "patient" and str(current_user["id"]) != str(patient_id):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Unauthorized: Patients can only upload their own reports"
@@ -59,29 +59,30 @@ async def upload_report(
             detail="File is too large. Maximum allowed size is 5MB."
         )
 
-    # 3. Save File (Required Supabase Storage upload)
-    if not supabase:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Supabase service is not configured on the server."
-        )
-
+    # 3. Save file — use Supabase Storage if available, otherwise local filesystem fallback
     unique_filename = f"{uuid.uuid4()}_{file.filename}"
-    supabase_path = f"{patient_id}/{unique_filename}"
-    
-    try:
-        # Upload to private bucket
-        supabase.storage.from_("medical-reports").upload(
-            path=supabase_path,
-            file=file_bytes,
-            file_options={"content-type": file.content_type}
-        )
-        file_url = f"medical-reports/{supabase_path}"
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Supabase storage upload failed: {str(e)}"
-        )
+    file_url = ""
+
+    if supabase:
+        supabase_path = f"{patient_id}/{unique_filename}"
+        try:
+            supabase.storage.from_("medical-reports").upload(
+                path=supabase_path,
+                file=file_bytes,
+                file_options={"content-type": file.content_type}
+            )
+            file_url = f"medical-reports/{supabase_path}"
+        except Exception as e:
+            # Supabase upload failed — fall back to local storage
+            print(f"[Reports] Supabase upload failed, falling back to local storage: {e}")
+            file_url = ""
+
+    if not file_url:
+        # Local filesystem fallback
+        local_path = os.path.join(UPLOAD_DIR, unique_filename)
+        with open(local_path, "wb") as f:
+            f.write(file_bytes)
+        file_url = f"/api/uploads/{unique_filename}"
 
     # 4. OCR text extraction
     extracted_text = extract_text_from_file(file_bytes, file.filename)
@@ -140,7 +141,7 @@ def get_reports_by_patient(
     """
     Retrieve all reports for a specific patient.
     """
-    if current_user["role"] == "patient" and current_user["id"] != patient_id:
+    if current_user["role"] == "patient" and str(current_user["id"]) != str(patient_id):
         raise HTTPException(status_code=403, detail="Access denied")
         
     return db.query(MedicalReport).filter(MedicalReport.patient_id == patient_id).all()
@@ -158,7 +159,7 @@ def get_report_analysis(
     if not report:
         raise HTTPException(status_code=404, detail="Report not found")
         
-    if current_user["role"] == "patient" and report.patient_id != current_user["id"]:
+    if current_user["role"] == "patient" and str(report.patient_id) != str(current_user["id"]):
         raise HTTPException(status_code=403, detail="Access denied")
         
     analysis = db.query(AIAnalysis).filter(AIAnalysis.report_id == report_id).first()

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.security import get_current_user
@@ -100,7 +100,7 @@ def list_appointments(
 @router.put("/{appt_id}", response_model=AppointmentResponse)
 def update_appointment_status(
     appt_id: UUID,
-    appt_status: str,  # 'scheduled', 'completed', 'cancelled'
+    appt_status: str = Query(..., description="Status: scheduled, completed, or cancelled"),  # 'scheduled', 'completed', 'cancelled'
     current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -116,12 +116,12 @@ def update_appointment_status(
         
     # Role checks
     role = current_user["role"]
-    if role == "patient" and appt.patient_id != current_user["id"]:
+    if role == "patient" and str(appt.patient_id) != str(current_user["id"]):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Forbidden: Cannot modify another patient's appointment"
         )
-    elif role == "doctor" and appt.doctor_id != current_user["id"]:
+    elif role == "doctor" and str(appt.doctor_id) != str(current_user["id"]):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Forbidden: Cannot modify an unassigned appointment"
@@ -163,12 +163,12 @@ def delete_appointment(
         
     # Permission Checks
     role = current_user["role"]
-    if role == "patient" and appt.patient_id != current_user["id"]:
+    if role == "patient" and str(appt.patient_id) != str(current_user["id"]):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Forbidden: Cannot delete another patient's appointment"
         )
-    elif role == "doctor" and appt.doctor_id != current_user["id"]:
+    elif role == "doctor" and str(appt.doctor_id) != str(current_user["id"]):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Forbidden: Cannot delete an unassigned appointment"
